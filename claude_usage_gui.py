@@ -271,8 +271,9 @@ class App:
         if not incidents:
             self._inc_sep.pack_forget()
             self._inc_frame.pack_forget()
-            x, y = self.root.winfo_x(), self.root.winfo_y()
-            self.root.geometry(f"300x200+{x}+{y}")
+            if not self._compact:
+                x, y = self.root.winfo_x(), self.root.winfo_y()
+                self.root.geometry(f"300x200+{x}+{y}")
             return
 
         self._inc_sep.pack(fill=tk.X, pady=(4, 0))
@@ -290,10 +291,11 @@ class App:
                      wraplength=270, justify=tk.LEFT, anchor=tk.W,
                      ).pack(fill=tk.X, anchor=tk.W)
 
-        self.root.update_idletasks()
-        h = self.root.winfo_reqheight()
-        x, y = self.root.winfo_x(), self.root.winfo_y()
-        self.root.geometry(f"300x{h}+{x}+{y}")
+        if not self._compact:
+            self.root.update_idletasks()
+            h = self.root.winfo_reqheight()
+            x, y = self.root.winfo_x(), self.root.winfo_y()
+            self.root.geometry(f"300x{h}+{x}+{y}")
 
     def _apply(self, data):
         for lim in data.get("limits", []):
