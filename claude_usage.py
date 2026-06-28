@@ -47,8 +47,10 @@ def fetch_usage(session_key: str, org_id: str) -> dict:
     return r.json()
 
 
-def format_reset_time(iso_str: str) -> str:
+def format_reset_time(iso_str) -> str:
     """把 UTC 時間轉成本地時間並格式化"""
+    if not iso_str:
+        return "—"
     dt = datetime.fromisoformat(iso_str).astimezone()
     now = datetime.now(timezone.utc).astimezone()
     delta = dt - now
@@ -78,9 +80,6 @@ def print_usage(data: dict):
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     for limit in data.get("limits", []):
-        if not limit.get("is_active") and limit.get("percent", 0) == 0:
-            continue
-
         kind = limit["kind"]
         pct = limit["percent"]
         sev = limit.get("severity", "normal")

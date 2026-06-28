@@ -6,7 +6,7 @@ from tkinter import ttk
 import threading
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 try:
     from dotenv import load_dotenv
@@ -57,16 +57,16 @@ def _fetch_incidents() -> list:
     url = "https://status.claude.com/api/v2/incidents.json"
     r = requests.get(url, timeout=8)
     r.raise_for_status()
-    today = datetime.now().date()
+    today_utc = datetime.now(timezone.utc).date()
     result = []
     for inc in r.json().get("incidents", []):
         try:
             created = datetime.fromisoformat(
                 inc["created_at"].replace("Z", "+00:00")
-            ).astimezone()
+            )
         except Exception:
             continue
-        if created.date() == today:
+        if created.date() == today_utc:
             result.append({
                 "name":   inc["name"],
                 "status": inc.get("status", ""),
@@ -301,8 +301,6 @@ class App:
         for lim in data.get("limits", []):
             kind = lim["kind"]
             if kind not in self._rows:
-                continue
-            if not lim.get("is_active") and lim.get("percent", 0) == 0:
                 continue
             sev = lim.get("severity", "normal")
             self._pcts[kind] = lim["percent"]
