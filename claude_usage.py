@@ -29,9 +29,8 @@ except ImportError:
     print("提示：安裝 python-dotenv 可從 .env 讀取設定：pip install python-dotenv")
 
 # ── 設定區 ────────────────────────────────────────────────────────────────────
-# 從 .env 或環境變數讀取（.env 範例見下方）
 SESSION_KEY = os.environ.get("CLAUDE_SESSION_KEY", "")
-ORG_ID = os.environ.get("CLAUDE_ORG_ID", "cc8c9b06-a7ba-4870-bb5a-8c56e745675d")
+ORG_ID      = os.environ.get("CLAUDE_ORG_ID", "cc8c9b06-a7ba-4870-bb5a-8c56e745675d")
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -39,9 +38,9 @@ def fetch_usage(session_key: str, org_id: str) -> dict:
     url = f"https://claude.ai/api/organizations/{org_id}/usage"
     headers = {
         "Cookie": f"sessionKey={session_key}",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-        "Referer": "https://claude.ai/settings",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Referer": "https://claude.ai//settings",
     }
     r = requests.get(url, headers=headers, timeout=10)
     r.raise_for_status()
