@@ -6,22 +6,9 @@ from tkinter import ttk
 import threading
 import sys
 import os
-from datetime import datetime, timezone
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
-
-try:
-    import requests
-except ImportError:
-    print("請先安裝 requests：pip install requests")
-    sys.exit(1)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from claude_usage import fetch_usage, format_reset_time, SESSION_KEY, ORG_ID
+from claude_usage_utils import fetch_usage, format_reset_time, fetch_incidents, SESSION_KEY, ORG_ID
 
 REFRESH_MS = 60_000 # 60秒更新一次
 BG     = "#1c1c1c"
@@ -53,28 +40,6 @@ STATUS_ZH = {
 }
 
 
-def _fetch_incidents() -> list:
-    url = "https://status.claude.com/api/v2/incidents.json"
-    r = requests.get(url, timeout=8)
-    r.raise_for_status()
-    today_utc = datetime.now(timezone.utc).date()
-    result = []
-    for inc in r.json().get("incidents", []):
-        try:
-            created = datetime.fromisoformat(
-                inc["created_at"].replace("Z", "+00:00")
-            )
-        except Exception:
-            continue
-        if created.date() == today_utc:
-            result.append({
-                "name":   inc["name"],
-                "status": inc.get("status", ""),
-                "impact": inc.get("impact", "none"),
-            })
-    return result
-
-
 class App:
     def __init__(self):
         self.root = tk.Tk()
@@ -82,7 +47,7 @@ class App:
         self.root.configure(bg=BG)
         self.root.overrideredirect(True)
         self.root.wm_attributes("-topmost", True)
-        self.root.wm_attributes("-alpha", 0.88)
+        self.root.wm_attributes("-alpha", 1.0)
         self.root.geometry("300x200+80+80")
         self._ox = self._oy = 0
         self._timer = None
@@ -162,7 +127,7 @@ class App:
         self._foot_frame = tk.Frame(self.root, bg=HDR, padx=10, pady=5)
         self._foot_frame.pack(fill=tk.X)
         tk.Label(self._foot_frame, text="透明度", bg=HDR, fg=SUB, font=("Segoe UI", 8)).pack(side=tk.LEFT)
-        v = tk.DoubleVar(value=0.88)
+        v = tk.DoubleVar(value=1.0)
         ttk.Scale(self._foot_frame, from_=0.15, to=1.0, orient=tk.HORIZONTAL, variable=v,
                   command=lambda val: self.root.wm_attributes("-alpha", float(val)),
                   length=140, style="Dark.Horizontal.TScale").pack(side=tk.RIGHT)
@@ -254,7 +219,7 @@ class App:
                 self.root.after(0, lambda: self._err.config(text=f"❌ {msg}"))
 
             try:
-                incidents = _fetch_incidents()
+                incidents = fetch_incidents()
             except Exception:
                 incidents = []
             self.root.after(0, lambda: self._apply_incidents(incidents))
