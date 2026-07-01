@@ -3,6 +3,7 @@
 
 import tkinter as tk
 from tkinter import ttk
+import ctypes
 import threading
 import sys
 import os
@@ -10,6 +11,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from claude_usage_utils import fetch_usage, format_reset_time, fetch_incidents, SESSION_KEY, ORG_ID
 
+ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
 REFRESH_MS = 60_000 # 60秒更新一次
 BG     = "#1c1c1c"
 HDR    = "#252525"
@@ -49,6 +51,8 @@ class App:
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 1.0)
         self.root.geometry("300x200+80+80")
+        self.root.iconbitmap(default=ICON_PATH)
+        # self._show_in_taskbar()
         self._ox = self._oy = 0
         self._timer = None
         self._compact = False
@@ -56,6 +60,20 @@ class App:
         self._sevs = {"session": FG, "weekly_all": FG}
         self._build()
         self._refresh()
+
+    def _show_in_taskbar(self):
+        """overrideredirect 視窗預設帶有 WS_EX_TOOLWINDOW，不會顯示在工具列，需手動改成 WS_EX_APPWINDOW。"""
+        GWL_EXSTYLE = -20
+        WS_EX_TOOLWINDOW = 0x00000080
+        WS_EX_APPWINDOW = 0x00040000
+
+        self.root.update_idletasks()
+        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+        style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+        style = (style & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW
+        ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+        self.root.withdraw()
+        self.root.after(10, self.root.deiconify)
 
     # ── UI ──────────────────────────────────────────────────────────────────
 
